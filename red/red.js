@@ -20,6 +20,10 @@ var path = require('path');
 var runtime = require("./runtime");
 var api = require("./api");
 
+//Begin Sofia2 custom code
+var sofia2 = require("./sofia2/sofia2-comm.js");
+//End Sofia2 custom code
+
 process.env.NODE_RED_HOME = process.env.NODE_RED_HOME || path.resolve(__dirname+"/..");
 
 var nodeApp = null;
@@ -40,6 +44,16 @@ function checkBuild() {
 
 module.exports = {
     init: function(httpServer,userSettings) {
+		
+		//Begin Sofia2 custom code
+		 if (userSettings.httpAdminRoot) {
+			 sofia2.setDomain(userSettings.httpAdminRoot);
+		 }
+		 if(userSettings.servicePortSofia2){
+			 sofia2.setServicePort(userSettings.servicePortSofia2);
+		 }
+		//End Sofia2 custom code
+		
         if (!userSettings) {
             userSettings = httpServer;
             httpServer = null;
@@ -74,6 +88,9 @@ module.exports = {
         });
     },
     stop: function() {
+		//Begin Sofia2 custom code
+		sofia2.stop();
+		//End Sofia2 custom code
         return runtime.stop().then(function() {
             if (apiEnabled) {
                 return api.stop();

@@ -18,6 +18,10 @@ var log;
 var redNodes;
 var settings;
 
+//Begin Sofia2 custom code
+var sofia2 = require("../sofia2/sofia2-comm.js");
+//End Sofia2 custom code
+
 module.exports = {
     init: function(runtime) {
         settings = runtime.settings;
@@ -29,11 +33,12 @@ module.exports = {
         res.json(redNodes.getFlows());
     },
     post: function(req,res) {
-        var flows = req.body;
-        var deploymentType = req.get("Node-RED-Deployment-Type")||"full";
+		var flows = req.body;
+		var deploymentType = req.get("Node-RED-Deployment-Type")||"full";
         log.audit({event: "flows.set",type:deploymentType},req);
         if (deploymentType === 'reload') {
             redNodes.loadFlows().then(function() {
+				sofia2.notifyNodes(flows);
                 res.status(204).end();
             }).otherwise(function(err) {
                 log.warn(log._("api.flows.error-reload",{message:err.message}));
@@ -42,6 +47,7 @@ module.exports = {
             });
         } else {
             redNodes.setFlows(flows,deploymentType).then(function() {
+				sofia2.notifyNodes(flows);
                 res.status(204).end();
             }).otherwise(function(err) {
                 log.warn(log._("api.flows.error-save",{message:err.message}));

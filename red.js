@@ -160,6 +160,12 @@ if (settings.httpNodeRoot !== false) {
 settings.uiPort = parsedArgs.port||settings.uiPort||1880;
 settings.uiHost = settings.uiHost||"0.0.0.0";
 
+//Sofia2 -- Para pruebas
+//settings.httpAdminRoot="/sofia_dominio";
+//settings.servicePortSofia2=16000;
+//Sofia2 -- Fin Para pruebas
+
+
 if (flowFile) {
     settings.flowFile = flowFile;
 }

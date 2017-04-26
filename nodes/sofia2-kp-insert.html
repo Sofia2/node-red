@@ -1,0 +1,324 @@
+<html>
+    <div style="display: none;" id="dialog-error" title="Se ha producido un error">Se ha perdido la comunicación con la plataforma </div>    
+
+    <script type="text/javascript" language="javascript" src="config/sofia2-config.js"></script>
+	<script type="text/javascript">
+		RED.nodes.registerType('sofia2-kp-insert',{
+			category: 'function',
+			color: '#C0DEED',
+			defaults: {
+				name: {value:""},
+				token : {value:""},
+        thinKp : {value:""},
+				instanciakp: {value:""},
+				func: {value:"\nreturn msg;"},
+                outputs: {value:1},
+                noerr: {value:0,required:true,validate:function(v){ return ((!v) || (v === 0)) ? true : false; }}
+			},
+			inputs: 1,
+			outputs:1,
+			icon: "function.png",
+			label: function() {
+				return this.name||"sofia2-kp-insert";
+			},
+        oneditprepare: function() {
+            var that = this;
+            $( "#node-input-outputs" ).spinner({
+                min:1
+            });
+
+            this.editor = RED.editor.createEditor({
+                id: 'node-input-func-editor',
+                mode: 'ace/mode/javascript',
+                value: $("#node-input-func").val(),
+                globals: {
+                    msg:true,
+                    context:true,
+                    RED: true,
+                    util: true,
+                    flow: true,
+                    global: true,
+                    console: true,
+                    Buffer: true,
+                    setTimeout: true,
+                    clearTimeout: true,
+                    setInterval: true,
+                    clearInterval: true
+                }
+            });
+
+            RED.library.create({
+                url:"functions", // where to get the data from
+                type:"function", // the type of object the library is for
+                editor:this.editor, // the field name the main text body goes to
+                mode:"ace/mode/javascript",
+                fields:['name','outputs']
+            });
+            this.editor.focus();
+        },
+        oneditsave: function() {
+            var annot = this.editor.getSession().getAnnotations();
+            this.noerr = 0;
+            $("#node-input-noerr").val(0);
+            for (var k=0; k < annot.length; k++) {
+                //console.log(annot[k].type,":",annot[k].text, "on line", annot[k].row);
+                if (annot[k].type === "error") {
+                    $("#node-input-noerr").val(annot.length);
+                    this.noerr = annot.length;
+                }
+            }
+            $("#node-input-func").val(this.editor.getValue());
+            delete this.editor;
+        },
+        oneditresize: function(size) {
+            var rows = $("#dialog-form>div:not(.node-text-editor-row)");
+            var height = $("#dialog-form").height();
+            for (var i=0;i<rows.size();i++) {
+                height -= $(rows[i]).outerHeight(true);
+            }
+            var editorRow = $("#dialog-form>div.node-text-editor-row");
+            height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
+            $(".node-text-editor").css("height",height+"px");
+            this.editor.resize();
+        }
+			
+		});
+
+
+
+
+         function showErrorDialogInsert() {
+            $( "#dialog-error" ).dialog({
+              resizable: false,
+              modal: true,
+              position: [($(window).width() / 2) - 150, 160],
+              dialogClass: 'DeleteConfirmDialog',
+               buttons: {
+                    'OK': function () {
+                        $(this).dialog("close");
+                        return true;
+                    }
+                }
+            });
+          }
+
+
+     var listaOntologiasUsuario;
+     var insertedLista = false;
+     var listaKpUsuario;
+     var insertedListaKp = false;
+    
+
+     
+
+     function onElementInserted(containerSelector, elementSelector, callback) {
+
+            var onMutationsObserved = function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.addedNodes.length) {
+                        var elements = $(mutation.addedNodes).find(elementSelector);
+                        for (var i = 0, len = elements.length; i < len; i++) {
+                            callback(elements[i]);
+                        }
+                    }
+                });
+            };
+
+            var target = $(containerSelector)[0];
+            var config = { childList: true, subtree: true };
+            var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+            var observer = new MutationObserver(onMutationsObserved);    
+            observer.observe(target, config);
+
+    }
+
+     function getParameterByName(name, url) {
+            if (!url) {
+              url = window.location.href;
+            }
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+
+
+     var user = getParameterByName('usuario');
+    var password = getParameterByName('password');
+     
+     
+
+     function obtenerKpUsuario(user){
+
+             
+             var urlService = sofia2Config.scriptBasePath +'/script/services/api_motorflujo/v01/kps?user=';
+
+             var url = urlService+user+"&password=" + password;
+
+
+             $.ajax({
+                url:    url , 
+                dataType: "jsonp",
+                timeout:5000,
+                jsonpCallback: 'kpUser',
+               success: function(data, textStatus, jqXHR) {
+                    
+                    if(textStatus == "success"){
+                       
+                       
+                       listaKpUsuario = data;
+                        onElementInserted('body', '#node-input-thinKpInsert', function(element) {
+          
+
+                       while(insertedListaKp == false){ 
+                        $('#node-input-thinKpInsert').append('<option value='+""+'>'+""+'</option>');
+                              $.each(listaKpUsuario, function (i, item) {
+                                          $('#node-input-thinKpInsert').append('<option value='+item+'>'+item+'</option>');
+                                      });
+
+                               
+                            insertedListaKp = true; 
+                        }
+                
+                      if( $('#node-input-thinKp').val()!=null &&  $('#node-input-thinKp').val()!=""){
+                         $('#node-input-thinKpInsert').val( $('#node-input-thinKp').val());
+                         }  
+
+                    $('#node-input-thinKpInsert').change(function(){
+
+                          $('input[name=selectThinKpInsert]').val( $('#node-input-thinKpInsert').val());
+
+                          if($('#node-input-thinKp').val() !=  $('#node-input-thinKpInsert').val()){
+                                  $('#node-input-thinKp').val($('#node-input-thinKpInsert').val());   
+                              }
+            
+                         }); 
+                });   
+
+             }
+           }
+             ,   
+              
+             error: function(xhr, status, error) {
+                    
+                  
+                     if(listaKpUsuario!=null){
+
+                            onElementInserted('body', '#node-input-thinKpInsert', function(element) {
+          
+
+                       while(insertedListaKp == false){ 
+                        $('#node-input-thinKpInsert').append('<option value='+""+'>'+""+'</option>');
+                              $.each(listaKpUsuario, function (i, item) {
+                                          $('#node-input-thinKpInsert').append('<option value='+item+'>'+item+'</option>');
+                                      });
+
+                               
+                            insertedListaKp = true; 
+                        }
+                
+                      if( $('#node-input-thinKp').val()!=null &&  $('#node-input-thinKp').val()!=""){
+                         $('#node-input-thinKpInsert').val( $('#node-input-thinKp').val());
+                         }  
+
+                    $('#node-input-thinKpInsert').change(function(){
+
+                          $('input[name=selectThinKpInsert]').val( $('#node-input-thinKpInsert').val());
+
+                          if($('#node-input-thinKp').val() !=  $('#node-input-thinKpInsert').val()){
+                                  $('#node-input-thinKp').val($('#node-input-thinKpInsert').val());   
+                              }
+            
+                         }); 
+                });   
+                    }else{
+                           showErrorDialogInsert();
+                    }
+              } 
+              
+                
+            })
+
+       }
+
+
+      //llamada a obtener los datos del usuario.
+      obtenerKpUsuario(getParameterByName('usuario')); 
+
+
+	</script>
+
+	<script type="text/x-red" data-template-name="sofia2-kp-insert">
+		<div class="form-row">
+			<label for="node-input-name"><i class="icon-tag"></i>Name</label>
+			<input type="text" id="node-input-name" placeholder="Name">
+		</div>
+		 
+		
+		<div class="form-row">
+			<label for="node-input-kp"><i class=" icon-bookmark"></i>Token</label>
+			<input type="text" id="node-input-token" placeholder="Token">
+		</div>
+    <div class="form-row">
+        <label for="node-input-thinKpInsert"><i class="icon-th-list"></i>ThinKP available</label>
+        <select id="node-input-thinKpInsert" placeholder="ThinKP">
+            
+        </select>
+    </div>
+
+     <div class="form-row">
+      <label for="node-input-thinKp"><i class="icon-tag"></i> ThinKP</label>
+      <input  disabled="disabled" type="text" id="node-input-thinKp" placeholder="ThinKP">
+    </div>
+		<div class="form-row">
+			<label for="node-input-instanciakp"><i class="icon-file"></i>KP instance</label>
+			<input type="text" id="node-input-instanciakp" placeholder="KP instance">
+		</div>
+
+	  <input type="hidden" name="selectThinKpInsert" value="">
+    <script type="text/javascript">
+         
+     var insertedListaKp = false;
+        onElementInserted('body', '#node-input-thinKpInsert', function(element) {
+          
+
+             while(insertedListaKp == false){ 
+              $('#node-input-thinKpInsert').append('<option value='+""+'>'+""+'</option>');
+                    $.each(listaKpUsuario, function (i, item) {
+                                $('#node-input-thinKpInsert').append('<option value='+item+'>'+item+'</option>');
+                            });
+
+                     
+                  insertedListaKp = true; 
+              }
+      
+            if( $('#node-input-thinKp').val()!=null &&  $('#node-input-thinKp').val()!=""){
+               $('#node-input-thinKpInsert').val( $('#node-input-thinKp').val());
+               }  
+
+          $('#node-input-thinKpInsert').change(function(){
+
+                $('input[name=selectThinKpInsert]').val( $('#node-input-thinKpInsert').val());
+
+                if($('#node-input-thinKp').val() !=  $('#node-input-thinKpInsert').val()){
+                        $('#node-input-thinKp').val($('#node-input-thinKpInsert').val());   
+                    }
+  
+               }); 
+      });   
+         
+     </script>
+
+	</script>
+
+	<script type="text/x-red" data-help-name="sofia2-kp-insert">
+		<p>ThinKP offers a flow, allowing the flow IoT trigger all of Sofia 2</p>
+        <p><code>Name</code> It is used to identity the node SSAP by a specific name. 
+        This is an optional field.</p>
+        <p><code>KP instance</code>It is used to indicate the  KP instance to be referenced.</p>
+
+        <p>In this case the reference to Ontology goes in the <code>msg.ontology</code> attribute in the data to send in the <code>msg.payload</code></p>   
+	</script>
+</html>

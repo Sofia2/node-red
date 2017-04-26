@@ -1,0 +1,78 @@
+<html>
+	<script type="text/javascript">
+		RED.nodes.registerType('sofia2-query-dinamic',{
+			category: 'function',
+			color: '#C0DEED',
+			defaults: {
+				name: {value:""},
+				user: {value:""},
+				password: {value: ""}
+			},
+			inputs: 1,
+			outputs:1,
+			icon: "db.png",
+			label: function() {
+				return this.name||"sofia2-query-dinamic";
+			}
+		});
+
+		 function setUser(user){
+  
+       RED.nodes.registry.getNodeType('sofia2-query-dinamic').defaults.user.value =user;
+          
+
+		                onElementInserted('body', '#node-input-user', function(element) {
+
+		                              $("#node-input-user").val(user);
+							  })
+
+    }
+
+    function setPassword(password){
+  
+       RED.nodes.registry.getNodeType('sofia2-query-dinamic').defaults.password.value =password;
+          
+
+        onElementInserted('body', '#node-input-password', function(element) {
+
+                      $("#node-input-password").val(password);
+			  })
+
+    }
+  
+    setUser(getParameterByName('usuario'));
+    setPassword(getParameterByName('password'));
+	</script>
+
+	<script type="text/x-red" data-template-name="sofia2-query-dinamic">
+		<div class="form-row">
+			<label for="node-input-name"><i class="icon-file"></i> Name</label>
+			<input type="text" id="node-input-name" placeholder="Name">
+		</div>
+		<div class="form-row">
+			<label for="node-input-user"><i class="icon-file"></i> User</label>
+			<input type="text" id="node-input-user" placeholder="User">
+		</div>
+		<div class="form-row">
+			<label for="node-input-password"><i class="icon-file"></i> Password</label>
+			<input type="password" id="node-input-password" placeholder="Password">
+		</div>
+	</script>
+
+	<script type="text/x-red" data-help-name="sofia2-query-dinamic">
+		<p>Node querying the data bases Dynamically, the node expects the following attributes in the input message:</p>
+		<p><code>ontology</code>  Name of the ontology to be referenced. It represents the domain model that handles a Thing.</p>
+	    <p><code>targetDB</code> Selection of different data bases.</p>
+	    <p><code>queryType</code> Language of the query, it could be SQL-Like (Select * from collection;) or Native (db.collection.find()).</p>
+	    <p><code>query</code> This is the query that are going to be launched</p>
+	    <p><code>url</code> Specify the url where the query is launched.</p>
+		<p>Form attributes:</p>
+		<p><code>Name</code> It is used to identity the node by a specific name. 
+		This is an optional field.</p>
+		<p><code>User</code> User making the query</p>
+		<p><code>Password</code> Password of the user</p>
+		<p>The output message has the following attributes:</p>
+		<p><code>payload</code>The result of the query, if the query is a SELECT. </p>
+		<p><code>ok</code>A boolean that specifies whether the query was ok</p>
+	</script>
+</html>

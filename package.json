@@ -1,5 +1,5 @@
 {
-    "name"         : "node-red",
+    "name"         : "node-red-sofia",
     "version"      : "0.14.6",
     "description"  : "A visual tool for wiring the Internet of Things",
     "homepage"     : "http://nodered.org",
@@ -58,7 +58,10 @@
         "node-red-node-feedparser":"0.1.*",
         "node-red-node-email":"0.1.*",
         "node-red-node-twitter":"0.1.*",
-        "node-red-node-rbe":"0.1.*"
+        "node-red-node-rbe":"0.1.*",
+		"body-parser":"1.9.2",
+		"multimap": "1.0.2",
+		"node-red-contrib-freeboard": "0.0.7"
     },
     "optionalDependencies": {
         "node-red-node-serialport":"0.2.*",
